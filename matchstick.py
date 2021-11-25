@@ -6,34 +6,19 @@ from stuff import *
 
 class State:
 	def __init__(self, init: set = None):
-		self.s = {(0, -1), (-1, 0)} if init is None else init
+		self.squares = {(0, -1), (-1, 0)} if init is None else init
 		self.lines = []
 		self.i = 0
 
 		self.update_lines()
-
-	def __str__(self) -> str:
-		bounds = (
-			min(x for x, y in self.s),
-			min(y for x, y in self.s),
-			max(x for x, y in self.s),
-			max(y for x, y in self.s),
-		)
-
-		out = ''
-		for y in range(bounds[1], bounds[3] + 1):
-			for x in range(bounds[0], bounds[2] + 1):
-				out += 'O' if (x, y) in self.s else ' '
-
-			if y != bounds[3]:
-				out += '\n'
-		return out
+		self.iter()
 
 	def box_coord(self, n, i = None) -> int:
 		if not i: i = self.i
 
 		return ceil(n / 2) if i % 2 == 1 else floor(n / 2)
 
+	# translate from pos to 2x2 box based on i
 	def box_coords(self, x, y, i = None) -> tuple:
 		return (self.box_coord(x, i),
 		        self.box_coord(y, i))
@@ -72,8 +57,9 @@ class State:
 				add_line((x, y), (x + 1, y + 1))
 	'''
 
+	# convert all current squares to lines
 	def update_lines(self):
-		for x, y in self.s:
+		for x, y in self.squares:
 			if self.i % 2 == 0:
 				self.lines.append(((x + 1, y), (x, y + 1)))
 			else:
@@ -86,7 +72,7 @@ class State:
 
 		for j in range(2):
 			for i in range(2):
-				if (i + pos[0], j + pos[1]) in self.s:
+				if (i + pos[0], j + pos[1]) in self.squares:
 					if f_pos: return None
 					else: f_pos = (((i + 1) % 2 + pos[0], j + pos[1]),
 					               (i + pos[0], (j + 1) % 2 + pos[1]))
@@ -97,7 +83,7 @@ class State:
 		out = set([])
 
 		# loop through boxes in bounds
-		for x, y in self.s:
+		for x, y in self.squares:
 			b = self.single_box(*self.box_coords(x, y))
 
 			# add neighbors of single
@@ -108,7 +94,7 @@ class State:
 		self.update_lines()
 
 		self.i += 1
-		self.s = out
+		self.squares = out
 
 	def draw(self, center: tuple, size: int = 10, width: int = 1):
 		for a, b, in self.lines:
@@ -118,16 +104,21 @@ class State:
 
 state = State()
 size = (500, 500)
-center = t_div(size, 2)
+center = [size[0] / 2, size[1] / 2]
 sz = 4
 
+# handle keys
 def keys(key: str, mousex: int, mousey: int):
 	global sz
 
 	if key == b'-':
 		sz /= 2
-	elif key == b'+':
+	elif key == b'+' or key == b'=':
 		sz *= 2
+	elif key == b'w': center[1] -= 10
+	elif key == b'a': center[0] += 10
+	elif key == b's': center[1] += 10
+	elif key == b'd': center[0] -= 10
 	else:
 		state.iter()
 
@@ -135,6 +126,4 @@ def draw():
 	state.draw(center, sz, 2)
 
 if __name__ == '__main__':
-	state.iter()
-
 	wrapper(draw, keys, 'matchsticks', size)
