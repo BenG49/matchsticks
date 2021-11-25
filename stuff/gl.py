@@ -22,7 +22,7 @@ def line(a: tuple, b: tuple, width: float = None):
 	glVertex2f(*b)
 	glEnd()
 
-def loop(function):
+def loop(draw):
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 	glLoadIdentity()
 
@@ -33,11 +33,11 @@ def loop(function):
 	glMatrixMode(GL_MODELVIEW)
 	glLoadIdentity()
 
-	function()
+	draw()
 
 	glutSwapBuffers()
 
-def wrapper(function, title: str, size: tuple = (500, 500), pos: tuple = (0, 0)):
+def wrapper(draw, func, title: str, size: tuple = (500, 500), pos: tuple = (0, 0)):
 	# init glut
 	glutInit()
 	# set display mode
@@ -49,7 +49,8 @@ def wrapper(function, title: str, size: tuple = (500, 500), pos: tuple = (0, 0))
 	# title
 	win = glutCreateWindow(title)
 	# call display funciton
-	glutDisplayFunc(lambda: loop(function))
+	glutDisplayFunc(lambda: loop(draw))
+	glutKeyboardFunc(func)
 	# draw idle
-	glutIdleFunc(lambda: loop(function))
+	glutIdleFunc(lambda: loop(draw))
 	glutMainLoop()
